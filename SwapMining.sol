@@ -727,6 +727,10 @@ contract SwapMining is Ownable {
         dexPerBlock = _newPerBlock;
     }
 
+    function setStartBlock(uint256 _startBlock) public onlyOwner {
+        startBlock = _startBlock;
+    }
+
     // Only tokens in the whitelist can be mined DEX
     function addWhitelist(address _addToken) public onlyOwner returns (bool) {
         require(_addToken != address(0), "SwapMining: token is the zero address");

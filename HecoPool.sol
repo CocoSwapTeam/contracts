@@ -812,7 +812,7 @@ interface IDex is IERC20 {
 }
 
 interface IMasterChef {
-    function pendingCake(uint256 pid, address user) external view returns (uint256);
+    function pending(uint256 pid, address user) external view returns (uint256);
 
     function deposit(uint256 pid, uint256 amount) external;
 
@@ -893,6 +893,10 @@ contract HecoPool is Ownable {
     function setDexPerBlock(uint256 newPerBlock) public onlyOwner {
         massUpdatePools();
         dexPerBlock = newPerBlock;
+    }
+
+    function setStartBlock(uint256 _startBlock) public onlyOwner {
+        startBlock = _startBlock;
     }
 
     function poolLength() public view returns (uint256) {
@@ -1088,7 +1092,7 @@ contract HecoPool is Ownable {
         uint256 accDexPerShare = pool.accDexPerShare;
         uint256 accMultLpPerShare = pool.accMultLpPerShare;
         if (user.amount > 0) {
-            uint256 TokenPending = IMasterChef(multLpChef).pendingCake(poolCorrespond[_pid], address(this));
+            uint256 TokenPending = IMasterChef(multLpChef).pending(poolCorrespond[_pid], address(this));
             accMultLpPerShare = accMultLpPerShare.add(TokenPending.mul(1e12).div(pool.totalAmount));
             uint256 userPending = user.amount.mul(accMultLpPerShare).div(1e12).sub(user.multLpRewardDebt);
             if (block.number > pool.lastRewardBlock) {
@@ -1123,7 +1127,7 @@ contract HecoPool is Ownable {
         return 0;
     }
 
-    // Deposit LP tokens to BSCPool for DEX allocation.
+    // Deposit LP tokens to HecoPool for DEX allocation.
     function deposit(uint256 _pid, uint256 _amount) public notPause {
         require(!isBadAddress(msg.sender), 'Illegal, rejected ');
         PoolInfo storage pool = poolInfo[_pid];
@@ -1191,7 +1195,7 @@ contract HecoPool is Ownable {
         emit Deposit(_user, _pid, _amount);
     }
 
-    // Withdraw LP tokens from BSCPool.
+    // Withdraw LP tokens from HecoPool.
     function withdraw(uint256 _pid, uint256 _amount) public notPause {
         PoolInfo storage pool = poolInfo[_pid];
         if (isMultLP(address(pool.lpToken))) {

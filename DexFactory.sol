@@ -68,10 +68,6 @@ interface IDexFactory {
     function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts);
 
     function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
-
-    function getDao() external view returns (address);
-
-    function getPairDaoRate(address pair) external view returns (uint256);
 }
 
 interface IDexPair {
@@ -636,8 +632,8 @@ library EnumerableSet {
 contract DexERC20 is IDexERC20 {
     using SafeMath for uint;
 
-    string public constant name = 'DEX LP Token';
-    string public constant symbol = 'DEX LP';
+    string public constant name = 'COCO LP Token';
+    string public constant symbol = 'COCO LP';
     uint8 public constant decimals = 18;
     uint  public totalSupply;
     mapping(address => uint) public balanceOf;
@@ -772,7 +768,6 @@ contract DexPair is IDexPair, DexERC20 {
         address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
-    event DaoReward(address token, uint256 amount);
 
     constructor() public {
         factory = msg.sender;
@@ -806,7 +801,7 @@ contract DexPair is IDexPair, DexERC20 {
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
         address feeTo = IDexFactory(factory).feeTo();
-        feeOn = feeTo != address(0) && IDexFactory(factory).getPairRate(address(this)) != 9;
+        feeOn = feeTo != address(0) && IDexFactory(factory).getPairRate(address(this)) != 99;
         uint _kLast = kLast;
         // gas savings
         if (feeOn) {
@@ -814,8 +809,8 @@ contract DexPair is IDexPair, DexERC20 {
                 uint rootK = SafeMath.sqrt(uint(_reserve0).mul(_reserve1));
                 uint rootKLast = SafeMath.sqrt(_kLast);
                 if (rootK > rootKLast) {
-                    uint numerator = totalSupply.mul(rootK.sub(rootKLast));
-                    uint denominator = rootK.mul(IDexFactory(factory).getPairRate(address(this))).add(rootKLast);
+                    uint numerator = totalSupply.mul(rootK.sub(rootKLast)).mul(10);
+                    uint denominator = rootK.mul(IDexFactory(factory).getPairRate(address(this))).add(rootKLast.mul(10));
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
@@ -945,7 +940,7 @@ contract DexFactory is IDexFactory {
     uint256 public feeRateNumerator = 30;
     address public feeTo;
     address public feeToSetter;
-    uint256 public feeToRate = 1;
+    uint256 public feeToRate = 5;
     bytes32 public initCodeHash;
 
     mapping(address => uint256) public pairFeeToRate;
@@ -1034,17 +1029,17 @@ contract DexFactory is IDexFactory {
         pairFees[pair] = fee;
     }
 
-    // Set the default fee rate ，if set to 1/10 no handling fee
+    // Set the default fee rate ，if set to 1/100 no handling fee. ** should multi by 10 **
     function setDefaultFeeToRate(uint256 rate) external {
         require(msg.sender == feeToSetter, 'DexSwapFactory: FORBIDDEN');
-        require(rate > 0 && rate <= 10, "DexSwapFactory: FEE_TO_RATE_OVERFLOW");
+        require(rate > 0 && rate <= 100, "DexSwapFactory: FEE_TO_RATE_OVERFLOW");
         feeToRate = rate.sub(1);
     }
 
-    // Set the commission rate of the pair ，if set to 1/10 no handling fee
+    // Set the commission rate of the pair ，if set to 1/10 no handling fee. ** should multi by 10 **
     function setPairFeeToRate(address pair, uint256 rate) external {
         require(msg.sender == feeToSetter, 'DexSwapFactory: FORBIDDEN');
-        require(rate > 0 && rate <= 10, "DexSwapFactory: FEE_TO_RATE_OVERFLOW");
+        require(rate > 0 && rate <= 100, "DexSwapFactory: FEE_TO_RATE_OVERFLOW");
         pairFeeToRate[pair] = rate.sub(1);
     }
 
@@ -1083,7 +1078,7 @@ contract DexFactory is IDexFactory {
                 initCodeHash
             ))));
     }
-    
+
     // fetches and sorts the reserves for a pair
     function getReserves(address tokenA, address tokenB) public view returns (uint reserveA, uint reserveB) {
         (address token0,) = sortTokens(tokenA, tokenB);
@@ -1118,7 +1113,7 @@ contract DexFactory is IDexFactory {
         uint denominator = reserveOut.sub(amountOut).mul(FEE_RATE_DENOMINATOR.sub(fee));
         amountIn = (numerator / denominator).add(1);
     }
-    
+
     // performs chained getAmountOut calculations on any number of pairs
     function getAmountsOut(uint amountIn, address[] memory path) public view returns (uint[] memory amounts) {
         require(path.length >= 2, 'DexSwapFactory: INVALID_PATH');

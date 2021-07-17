@@ -1273,14 +1273,14 @@ abstract contract DelegateERC20 is ERC20 {
 
 }
 
-contract DexToken is DelegateERC20, Ownable {
-    uint256 private constant preMineSupply = 2000000 * 1e18;
-    uint256 private constant maxSupply = 342992000 * 1e18;     // the total supply
+contract COCOToken is DelegateERC20, Ownable {
+    uint256 private constant preMineSupply = 200000000 * 1e18;
+    uint256 private constant maxSupply = 1000000000 * 1e18;     // the total supply
 
     using EnumerableSet for EnumerableSet.AddressSet;
     EnumerableSet.AddressSet private _minters;
 
-    constructor() public ERC20("DEX Token", "DEX"){
+    constructor() public ERC20("COCO Token", "COCO"){
         _mint(msg.sender, preMineSupply);
     }
 

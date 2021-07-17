@@ -848,9 +848,9 @@ contract Repurchase is Ownable {
     EnumerableSet.AddressSet private _caller;
 
     address public constant USDT = 0xa71EdC38d189767582C38A3145b5873052c3e47a;
-    address public constant COCO = ;
-    address public constant COCO_USDT = ;
-    address public constant destroyAddress = address(0);
+    address public constant COCO = 0x8871da134f113f6819ba106Df2b95AF5bac90eB8;
+    address public constant COCO_USDT = 0x1D6bf60F9EFcd788c24f254E90c323EF90f635EE;
+    address public constant destroyAddress = 0x000000000000000000000000000000000000C0C0;
     address public emergencyAddress;
     uint256 public amountIn;
 

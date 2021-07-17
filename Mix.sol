@@ -343,6 +343,7 @@ contract CocoMix is Ownable {
     using SafeMath for uint256;
 
     IWETH wETH = IWETH(address(0x5545153CCFcA01fbd7Dd11C0b23ba694D9509A6F));
+    event Swap(address user, address token, uint256 amount, uint256 fee);
 
     address trader = address(0);
     address miner = address(0);
@@ -353,9 +354,7 @@ contract CocoMix is Ownable {
     mapping (address => bool) public tokenWhiteList;
     mapping (address => uint256) public tokenFee;
 
-    constructor(address _trader, address _minter, address _receiver) public {
-        trader = _trader;
-        miner = _minter;
+    constructor(address _receiver) public {
         feeReceiver = _receiver;
     }
 
@@ -374,7 +373,7 @@ contract CocoMix is Ownable {
 
         //Token in
         if (inToken == address(0)) {
-            uint256 ethBalance = address(this).balance;
+            uint256 ethBalance = msg.value;
             require(amountIn == ethBalance, "amountIn not equal");
             wETH.deposit.value(ethBalance)();
         } else {
@@ -416,6 +415,8 @@ contract CocoMix is Ownable {
             require(balance > minOut, "less than minOut");
             SafeToken.safeTransfer(outToken, user, balance);
         }
+
+        emit Swap(user, inToken, amountIn, fee);
     }
 
     function setTrader(address _trader) external onlyOwner {
@@ -424,6 +425,10 @@ contract CocoMix is Ownable {
 
     function setMiner(address _miner) external onlyOwner {
         miner = _miner;
+    }
+
+    function setFeeReceiver(address _feeReceiver) external onlyOwner {
+        feeReceiver = _feeReceiver;
     }
 
     function setFee(uint256 _fee) external onlyOwner {
